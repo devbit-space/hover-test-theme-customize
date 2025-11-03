@@ -1,0 +1,1044 @@
+{{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+{{ 'component-accordion.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'product-info.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    }
+
+    @media screen and (min-width: 750px) {
+      .section-{{ section.id }}-padding {
+        padding-top: {{ section.settings.padding_top }}px;
+        padding-bottom: {{ section.settings.padding_bottom }}px;
+      }
+    }
+
+  .custom-product-page {
+    --color-primary: {{ section.settings.primary_color }};
+    --color-secondary: {{ section.settings.secondary_color }};
+    --color-text: {{ section.settings.text_color }};
+    --color-background: {{ section.settings.background_color }};
+    --font-heading: {{ section.settings.font_heading.family }}, {{ section.settings.font_heading.fallback_families }};
+    --font-body: {{ section.settings.font_body.family }}, {{ section.settings.font_body.fallback_families }};
+    --desktop-image-height: {{ section.settings.desktop_image_height | default: 657 }}px;
+    --mobile-image-height: {{ section.settings.mobile_image_height | default: 350 }}px;
+    --thumbnail-columns: {{ section.settings.thumbnail_columns }};
+    --thumbnail-size: {{ section.settings.thumbnail_size }}px;
+    --gallery-border-radius: {{ section.settings.gallery_border_radius }}px;
+    --subscription-button-height-desktop: {{ section.settings.subscription_button_height_desktop | default: 99 }}px;
+    --subscription-button-height-mobile: {{ section.settings.subscription_button_height_mobile | default: 78 }}px;
+    --subscription-selected-bg: {{ section.settings.subscription_selected_bg | default: '#D4E9E7' }};
+    --subscription-selected-border-color: {{ section.settings.subscription_selected_border_color | default: '#B8D8D5' }};
+    --subscription-selected-border-width: {{ section.settings.subscription_selected_border_width | default: 2 }}px;
+    --subscription-selected-badge-bg: {{ section.settings.subscription_selected_badge_bg | default: '#000000' }};
+    --subscription-selected-badge-text: {{ section.settings.subscription_selected_badge_text | default: '#FFFFFF' }};
+    --mobile-scrollbar-bg: {{ section.settings.mobile_scrollbar_bg | default: '#E0E0E0' }};
+    --mobile-scrollbar-thumb: {{ section.settings.mobile_scrollbar_thumb | default: '#000000' }};
+    }
+{%- endstyle -%}
+
+<product-info
+  id="ProductInfo-{{ section.id }}"
+  class="custom-product-page section-{{ section.id }}-padding"
+  data-section="{{ section.id }}"
+  data-product-id="{{ product.id }}"
+  data-update-url="true"
+  data-url="{{ product.url }}"
+>
+  <div class="page-inner">
+    <div class="product-layout">
+      <!-- Product Gallery -->
+      <div class="product-gallery">
+        {%- if product.media.size > 0 -%}
+          <!-- Desktop Gallery -->
+          <div class="product-gallery__desktop">
+            <div class="product-gallery__main">
+              {%- for media in product.media -%}
+                <div
+                  class="product-gallery__item {% if forloop.first %}active{% endif %}"
+                  data-media-id="{{ media.id }}"
+                >
+                  {%- if product.tags contains 'mens t-shirt example' -%}
+                    <div class="product-badge">Hautement dosé</div>
+                  {%- endif -%}
+
+                  {%- case media.media_type -%}
+                    {%- when 'image' -%}
+                      <img
+                        src="{{ media | image_url: width: 800 }}"
+                        srcset="
+                          {{ media | image_url: width: 400 }} 400w,
+                          {{ media | image_url: width: 600 }} 600w,
+                          {{ media | image_url: width: 800 }} 800w,
+                          {{ media | image_url: width: 1000 }} 1000w
+                        "
+                        sizes="(max-width: 749px) 100vw, 50vw"
+                        alt="{{ media.alt | escape }}"
+                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                        width="{{ media.width }}"
+                        height="{{ media.height }}"
+                      >
+                    {%- when 'video', 'external_video' -%}
+                      {{ media | media_tag: image_size: '800x', autoplay: true, loop: true, muted: true }}
+                  {%- endcase -%}
+                </div>
+              {%- endfor -%}
+            </div>
+
+            {%- if product.media.size > 1 -%}
+              <div class="product-gallery__thumbnails">
+                {%- for media in product.media limit: 4 -%}
+                  <div
+                    class="product-gallery__thumb {% if forloop.first %}active{% endif %}"
+                    data-media-id="{{ media.id }}"
+                  >
+                    {%- if media.media_type == 'image' -%}
+                      <img
+                        src="{{ media | image_url: width: 300 }}"
+                        srcset="
+                          {{ media | image_url: width: 150 }} 150w,
+                          {{ media | image_url: width: 200 }} 200w,
+                          {{ media | image_url: width: 300 }} 300w
+                        "
+                        sizes="(max-width: 749px) 45vw, 150px"
+                        alt="{{ media.alt | escape }}"
+                        width="300"
+                        height="300"
+                        loading="lazy"
+                      >
+                    {%- else -%}
+                      <img
+                        src="{{ media.preview_image | image_url: width: 300 }}"
+                        srcset="
+                          {{ media.preview_image | image_url: width: 150 }} 150w,
+                          {{ media.preview_image | image_url: width: 200 }} 200w,
+                          {{ media.preview_image | image_url: width: 300 }} 300w
+                        "
+                        sizes="(max-width: 749px) 45vw, 150px"
+                        alt="{{ media.alt | escape }}"
+                        width="300"
+                        height="300"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                  </div>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          </div>
+
+          <!-- Mobile Swiper -->
+          <div class="product-gallery__mobile">
+            <div class="product-gallery__swiper" data-media-count="{{ product.media.size }}">
+              {%- for media in product.media -%}
+                <div class="product-gallery__slide" data-index="{{ forloop.index0 }}">
+                  {%- if forloop.first and product.tags contains 'mens t-shirt example' -%}
+                    <div class="product-badge">Hautement dosé</div>
+                  {%- endif -%}
+
+                  {%- case media.media_type -%}
+                    {%- when 'image' -%}
+                      <img
+                        src="{{ media | image_url: width: 800 }}"
+                        srcset="
+                          {{ media | image_url: width: 400 }} 400w,
+                          {{ media | image_url: width: 600 }} 600w,
+                          {{ media | image_url: width: 800 }} 800w
+                        "
+                        sizes="100vw"
+                        alt="{{ media.alt | escape }}"
+                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                        width="{{ media.width }}"
+                        height="{{ media.height }}"
+                      >
+                    {%- when 'video', 'external_video' -%}
+                      {{ media | media_tag: image_size: '800x', autoplay: true, loop: true, muted: true }}
+                  {%- endcase -%}
+                </div>
+              {%- endfor -%}
+            </div>
+            {%- if product.media.size > 1 -%}
+              <div class="product-gallery__scrollbar">
+                <div class="product-gallery__scrollbar-track">
+                  <div class="product-gallery__scrollbar-thumb"></div>
+                </div>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          <div class="product-gallery__placeholder">
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info">
+        <div class="product-info__wrapper">
+          {%- assign has_collapsible_tabs = false -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'collapsible_tab' -%}
+              {%- assign has_collapsible_tabs = true -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'trustpilot' -%}
+                <div class="product-trustpilot" {{ block.shopify_attributes }}>
+                  {%- if block.settings.show_trustpilot -%}
+                    <div class="trustpilot-widget">
+                      <span class="trustpilot-label">{{ block.settings.trustpilot_label }}</span>
+                      <div class="trustpilot-stars">
+                        {% comment %} {%- for i in (1..5) -%}
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="#00b67a">
+                            <path d="M10 0l2.5 7.5h7.5l-6 4.5 2.5 7.5-6-4.5-6 4.5 2.5-7.5-6-4.5h7.5z"/>
+                          </svg>
+                        {%- endfor -%} {% endcomment %}
+                        <img class="trustpilot-stars-image" src="{{ 'Trustpilot_-_etoiles.png' | file_url }}" alt="Trustpilot stars" width="85" height="16">
+                      </div>
+                      <span class="trustpilot-label">
+                        {{- block.settings.review_count }}
+                        {{ block.settings.review_label -}}
+                      </span>
+                      <div class="trustpilot-mark-wrapper">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="#00b67a" style="margin-top: -2px;">
+                          <path d="M10 0l2.5 7.5h7.5l-6 4.5 2.5 7.5-6-4.5-6 4.5 2.5-7.5-6-4.5h7.5z"/>
+                        </svg>
+                        <span class="trustpilot-label">Trustpilot</span>
+                      </div>
+                      {%- if block.settings.trustpilot_logo -%}
+                        <img
+                          src="{{ block.settings.trustpilot_logo | image_url: width: 100 }}"
+                          alt="Trustpilot"
+                          class="trustpilot-logo"
+                          width="100"
+                          height="20"
+                          loading="lazy"
+                        >
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+
+              {%- when 'title' -%}
+                <div class="product-title" {{ block.shopify_attributes }}>
+                  <h1>{{ product.title }}</h1>
+                </div>
+
+              {%- when 'price' -%}
+                <div class="product-price" {{ block.shopify_attributes }}>
+                  <div class="price-wrapper">
+                    <span class="price" data-product-price>
+                      {{ product.selected_or_first_available_variant.price | money }}
+                    </span>
+                    {%- if product.selected_or_first_available_variant.compare_at_price
+                        > product.selected_or_first_available_variant.price
+                    -%}
+                      <span class="price-compare">
+                        {{ product.selected_or_first_available_variant.compare_at_price | money }}
+                      </span>
+                    {%- endif -%}
+                  </div>
+                </div>
+
+              {%- when 'description' -%}
+                <div class="product-description" {{ block.shopify_attributes }}>
+                  {%- if block.settings.custom_description != blank -%}
+                    {{ block.settings.custom_description }}
+                  {%- elsif block.settings.show_full_description -%}
+                    {{ product.description }}
+                  {%- else -%}
+                    {%- assign description_excerpt = product.description | strip_html | truncatewords: 30 -%}
+                    <p>{{ description_excerpt }}</p>
+                  {%- endif -%}
+                </div>
+
+              {%- when 'checkmarks' -%}
+                <div class="product-checkmarks" {{ block.shopify_attributes }}>
+                  {%- if block.settings.checkmark_1 != blank -%}
+                    <div class="checkmark-item">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" stroke-width="0.4" stroke-linecap="round" stroke="currentColor" />
+                      </svg>
+                      <span>{{ block.settings.checkmark_1 }}</span>
+                    </div>
+                  {%- endif -%}
+                  {%- if block.settings.checkmark_2 != blank -%}
+                    <div class="checkmark-item">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" stroke-width="0.4" stroke-linecap="round" stroke="currentColor" />
+                      </svg>
+                      <span>{{ block.settings.checkmark_2 }}</span>
+                    </div>
+                  {%- endif -%}
+                  {%- if block.settings.checkmark_3 != blank -%}
+                    <div class="checkmark-item">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" stroke-width="0.4" stroke-linecap="round" stroke="currentColor" />
+                      </svg>
+                      <span>{{ block.settings.checkmark_3 }}</span>
+                    </div>
+                  {%- endif -%}
+                </div>
+
+              {%- when 'subscription_options' -%}
+                <div class="subscription-options" {{ block.shopify_attributes }}>
+                  <div class="subscription-grid">
+                    {%- if block.settings.show_option_1 -%}
+                      <div
+                        class="subscription-option"
+                        data-subscription="1-month"
+                        style="background-color: {{ block.settings.option_1_bg_color }}; border-color: {{ block.settings.option_1_border_color }};"
+                      >
+                        {%- if block.settings.option_1_badge -%}
+                          <span
+                            class="subscription-badge"
+                            style="background-color: {{ block.settings.option_1_badge_bg }}; color: {{ block.settings.option_1_badge_text }};"
+                          >
+                            {{ block.settings.option_1_badge }}
+                          </span>
+                        {%- endif -%}
+                        <div class="subscription-content">
+                          <div class="subscription-title">{{ block.settings.option_1_title }}</div>
+                          <div class="subscription-price">
+                            <span class="subscription-unit-price">{{ block.settings.option_1_unit_price }}</span>
+                            <span class="subscription-period">{{ block.settings.option_1_period }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    {%- endif -%}
+
+                    {%- if block.settings.show_option_2 -%}
+                      <div
+                        class="subscription-option"
+                        data-subscription="2-month"
+                        style="background-color: {{ block.settings.option_2_bg_color }}; border-color: {{ block.settings.option_2_border_color }};"
+                      >
+                        {%- if block.settings.option_2_title_badge -%}
+                          <span
+                            class="subscription-badge"
+                            style="background-color: {{ block.settings.option_2_title_badge_bg }}; color: {{ block.settings.option_2_title_badge_text }};"
+                          >
+                            {{ block.settings.option_2_title_badge }}
+                          </span>
+                        {%- endif -%}
+                        <div class="subscription-content">
+                          <div class="subscription-title">{{ block.settings.option_2_title }}</div>
+                          <div class="subscription-price">
+                            {%- if block.settings.option_2_discount_badge -%}
+                              <span
+                                class="subscription-badge discount"
+                                style="background-color: {{ block.settings.option_2_badge_bg }}; color: {{ block.settings.option_2_badge_text }};"
+                              >
+                                {{ block.settings.option_2_discount_badge }}
+                              </span>
+                            {%- endif -%}
+                            <span class="subscription-unit-price">{{ block.settings.option_2_unit_price }}</span>
+                            <span class="subscription-period">{{ block.settings.option_2_period }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    {%- endif -%}
+                  </div>
+                </div>
+
+              {%- when 'buy_button' -%}
+                {%- assign product_form_id = 'product-form-' | append: section.id -%}
+                <div class="product-buy-button" {{ block.shopify_attributes }}>
+                  <product-form class="product-form">
+                    {%- form 'product',
+                      product,
+                      id: product_form_id,
+                      novalidate: 'novalidate',
+                      data-type: 'add-to-cart-form'
+                    -%}
+                      <input
+                        type="hidden"
+                        name="id"
+                        value="{{ product.selected_or_first_available_variant.id }}"
+                        class="product-variant-id"
+                      >
+
+                      <div class="product-form__error-message-wrapper" role="alert" hidden>
+                        <span class="product-form__error-message"></span>
+                      </div>
+
+                      <button
+                        type="submit"
+                        name="add"
+                        class="btn-add-to-cart"
+                        {% if product.selected_or_first_available_variant.available == false %}
+                          disabled
+                        {% endif %}
+                      >
+                        <span class="btn-text">
+                          {%- if product.selected_or_first_available_variant.available -%}
+                            {{ block.settings.button_text }}
+                            <span class="btn-price-separator"></span>
+                            <span
+                              class="btn-price"
+                              data-cart-price
+                              data-base-price="{{ product.selected_or_first_available_variant.price | money }}"
+                            >
+                              {{- product.selected_or_first_available_variant.price | money -}}
+                            </span>
+                          {%- else -%}
+                            {{ block.settings.sold_out_text }}
+                          {%- endif -%}
+                        </span>
+                        <div class="loading__spinner hidden">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
+                            <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+                          </svg>
+                        </div>
+                      </button>
+                    {%- endform -%}
+                  </product-form>
+                </div>
+
+              {%- when 'availability' -%}
+                <div 
+                  class="product-availability" 
+                  {{ block.shopify_attributes }}
+                  data-delivery-days="{{ block.settings.delivery_days | default: 0 }}"
+                >
+                  {%- if product.selected_or_first_available_variant.available -%}
+                    <p class="availability-text">
+                      <strong>{{ block.settings.in_stock_text }}</strong> 
+                      <span class="availability-message">
+                        {{ block.settings.availability_message }}
+                        <span class="delivery-date"></span>
+                      </span>
+                    </p>
+                  {%- else -%}
+                    <p class="availability-text out-of-stock">
+                      {{ block.settings.out_of_stock_text }}
+                    </p>
+                  {%- endif -%}
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
+
+          {%- if has_collapsible_tabs -%}
+            <div class="collapsible-tabs-wrapper">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'collapsible_tab' -%}
+                  <div class="collapsible-tab" {{ block.shopify_attributes }}>
+                    <details
+                      {% if block.settings.open_by_default %}
+                        open
+                      {% endif %}
+                    >
+                      <summary>
+                        <span>{{ block.settings.heading }}</span>
+                        <svg class="icon-caret" width="14" height="8" viewBox="0 0 12 8" fill="none">
+                          <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                      </summary>
+                      <div class="collapsible-content">
+                        {{ block.settings.content }}
+                      </div>
+                    </details>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</product-info>
+
+{% schema %}
+{
+  "name": "Product Information",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "secondary_color",
+      "label": "Secondary Color",
+      "default": "#D4E9E7"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "font_picker",
+      "id": "font_heading",
+      "label": "Heading Font",
+      "default": "assistant_n4"
+    },
+    {
+      "type": "font_picker",
+      "id": "font_body",
+      "label": "Body Font",
+      "default": "assistant_n4"
+    },
+    {
+      "type": "header",
+      "content": "Mobile Image Settings"
+    },
+    {
+      "type": "range",
+      "id": "mobile_image_height",
+      "min": 300,
+      "max": 800,
+      "step": 25,
+      "unit": "px",
+      "label": "Mobile Image Height",
+      "default": 350
+    },
+    {
+      "type": "header",
+      "content": "Thumbnail Settings"
+    },
+    {
+      "type": "select",
+      "id": "thumbnail_columns",
+      "label": "Thumbnail Columns (Desktop)",
+      "options": [
+        {
+          "value": "2",
+          "label": "2 Columns"
+        },
+        {
+          "value": "3",
+          "label": "3 Columns"
+        },
+        {
+          "value": "4",
+          "label": "4 Columns"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_size",
+      "min": 80,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Thumbnail Size (Height)",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "gallery_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Gallery Border Radius",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Mobile Gallery Settings"
+    },
+    {
+      "type": "color",
+      "id": "mobile_scrollbar_bg",
+      "label": "Mobile Scrollbar Background",
+      "default": "#E0E0E0"
+    },
+    {
+      "type": "color",
+      "id": "mobile_scrollbar_thumb",
+      "label": "Mobile Scrollbar Thumb Color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Subscription Button Settings"
+    },
+    {
+      "type": "range",
+      "id": "subscription_button_height_desktop",
+      "min": 60,
+      "max": 150,
+      "step": 1,
+      "unit": "px",
+      "label": "Subscription Button Height (Desktop)",
+      "default": 99
+    },
+    {
+      "type": "range",
+      "id": "subscription_button_height_mobile",
+      "min": 50,
+      "max": 120,
+      "step": 1,
+      "unit": "px",
+      "label": "Subscription Button Height (Mobile)",
+      "default": 78
+    },
+    {
+      "type": "color",
+      "id": "subscription_selected_bg",
+      "label": "Subscription Selected Background",
+      "default": "#D4E9E7"
+    },
+    {
+      "type": "color",
+      "id": "subscription_selected_border_color",
+      "label": "Subscription Selected Border Color",
+      "default": "#B8D8D5"
+    },
+    {
+      "type": "range",
+      "id": "subscription_selected_border_width",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Subscription Selected Border Width",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "subscription_selected_badge_bg",
+      "label": "Subscription Selected Badge Background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "subscription_selected_badge_text",
+      "label": "Subscription Selected Badge Text Color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "trustpilot",
+      "name": "Trustpilot Reviews",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_trustpilot",
+          "label": "Show Trustpilot",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "trustpilot_label",
+          "label": "Label",
+          "default": "Excellent"
+        },
+        {
+          "type": "text",
+          "id": "review_count",
+          "label": "Review Count",
+          "default": "17,102"
+        },
+        {
+          "type": "text",
+          "id": "review_label",
+          "label": "Review Label",
+          "default": "avis"
+        },
+        {
+          "type": "image_picker",
+          "id": "trustpilot_logo",
+          "label": "Trustpilot Logo"
+        }
+      ]
+    },
+    {
+      "type": "title",
+      "name": "Product Title",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "Product Price",
+      "limit": 1
+    },
+    {
+      "type": "description",
+      "name": "Product Description",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "custom_description",
+          "label": "Custom Description (Optional)",
+          "info": "If set, this will override the product description"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_full_description",
+          "label": "Show Full Description",
+          "default": false,
+          "info": "Only used if custom description is empty"
+        }
+      ]
+    },
+    {
+      "type": "checkmarks",
+      "name": "Checkmark List",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "checkmark_1",
+          "label": "Checkmark 1",
+          "default": "Lorem ipsum dolor sit amet"
+        },
+        {
+          "type": "text",
+          "id": "checkmark_2",
+          "label": "Checkmark 2",
+          "default": "Lorem ipsum dolor sit amet"
+        },
+        {
+          "type": "text",
+          "id": "checkmark_3",
+          "label": "Checkmark 3",
+          "default": "Lorem ipsum dolor sit amet"
+        }
+      ]
+    },
+    {
+      "type": "subscription_options",
+      "name": "Subscription Options",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Option 1"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_option_1",
+          "label": "Show Option 1",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "option_1_badge",
+          "label": "Badge Text",
+          "default": "Découverte"
+        },
+        {
+          "type": "text",
+          "id": "option_1_title",
+          "label": "Title",
+          "default": "1 mois"
+        },
+        {
+          "type": "text",
+          "id": "option_1_unit_price",
+          "label": "Unit Price",
+          "default": "Soit 1,16€"
+        },
+        {
+          "type": "text",
+          "id": "option_1_period",
+          "label": "Period",
+          "default": "/ jour"
+        },
+        {
+          "type": "header",
+          "content": "Option 1 Colors"
+        },
+        {
+          "type": "color",
+          "id": "option_1_bg_color",
+          "label": "Background Color",
+          "default": "#F8F8F8"
+        },
+        {
+          "type": "color",
+          "id": "option_1_border_color",
+          "label": "Border Color",
+          "default": "#E0E0E0"
+        },
+        {
+          "type": "color",
+          "id": "option_1_badge_bg",
+          "label": "Badge Background",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "option_1_badge_text",
+          "label": "Badge Text Color",
+          "default": "#000000"
+        },
+        {
+          "type": "header",
+          "content": "Option 2"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_option_2",
+          "label": "Show Option 2",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "option_2_title_badge",
+          "label": "Title Badge (Top Border)",
+          "default": "Meilleure offre"
+        },
+        {
+          "type": "text",
+          "id": "option_2_discount_badge",
+          "label": "Discount Badge (Left of Price)",
+          "default": "-10%"
+        },
+        {
+          "type": "text",
+          "id": "option_2_title",
+          "label": "Title",
+          "default": "2 mois"
+        },
+        {
+          "type": "text",
+          "id": "option_2_unit_price",
+          "label": "Unit Price",
+          "default": "Soit 1,05€"
+        },
+        {
+          "type": "text",
+          "id": "option_2_period",
+          "label": "Period",
+          "default": "/ jour"
+        },
+        {
+          "type": "header",
+          "content": "Option 2 Colors"
+        },
+        {
+          "type": "color",
+          "id": "option_2_bg_color",
+          "label": "Background Color",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "option_2_border_color",
+          "label": "Border Color",
+          "default": "#E0E0E0"
+        },
+        {
+          "type": "color",
+          "id": "option_2_title_badge_bg",
+          "label": "Title Badge Background",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "option_2_title_badge_text",
+          "label": "Title Badge Text Color",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "option_2_badge_bg",
+          "label": "Discount Badge Background",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "option_2_badge_text",
+          "label": "Discount Badge Text Color",
+          "default": "#FFFFFF"
+        }
+      ]
+    },
+    {
+      "type": "buy_button",
+      "name": "Buy Button",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Button Text",
+          "default": "Ajouter au panier"
+        },
+        {
+          "type": "text",
+          "id": "sold_out_text",
+          "label": "Sold Out Text",
+          "default": "Sold Out"
+        }
+      ]
+    },
+    {
+      "type": "availability",
+      "name": "Stock Availability",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "in_stock_text",
+          "label": "In Stock Text",
+          "default": "En stock,"
+        },
+        {
+          "type": "text",
+          "id": "availability_message",
+          "label": "Availability Message",
+          "default": "commandez maintenant et soyez livré le",
+          "info": "The delivery date will be automatically appended. Use format like 'commandez maintenant et soyez livré le'"
+        },
+        {
+          "type": "range",
+          "id": "delivery_days",
+          "min": 0,
+          "max": 30,
+          "step": 1,
+          "label": "Delivery Time (Days)",
+          "default": 5,
+          "info": "Number of days from today to calculate the delivery date"
+        }
+      ]
+    },
+    {
+      "type": "collapsible_tab",
+      "name": "Collapsible Tab",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Collapsible Tab"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content",
+          "default": "<p>Add content here</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Information",
+      "blocks": [
+        {
+          "type": "trustpilot"
+        },
+        {
+          "type": "title"
+        },
+        {
+          "type": "price"
+        },
+        {
+          "type": "description"
+        },
+        {
+          "type": "checkmarks"
+        },
+        {
+          "type": "subscription_options"
+        },
+        {
+          "type": "buy_button"
+        },
+        {
+          "type": "availability"
+        },
+        {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Bienfaits et Efficacité"
+          }
+        },
+        {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Ingrédients"
+          }
+        },
+        {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Utilisation & Précautions"
+          }
+        },
+        {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Certificats & Études"
+          }
+        },
+        {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Livraison & Retour"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
